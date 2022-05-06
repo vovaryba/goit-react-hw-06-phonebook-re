@@ -1,11 +1,17 @@
 import { useForm } from 'react-hook-form';
+import { useSelector, useDispatch } from 'react-redux';
+import { toast } from 'react-toastify';
+import phonebookActions from 'redux/phonebook/phonebook-actions';
+import { getContacts } from 'redux/phonebook/phonebook-selectors';
 import s from './AddContactForm.module.css';
 
-const AddContactForm = ({ onSubmit }) => {
+const AddContactForm = () => {
+  const contacts = useSelector(getContacts);
+  const dispatch = useDispatch();
+
   const {
     register,
     handleSubmit,
-
     reset,
     formState: { errors },
   } = useForm({
@@ -15,8 +21,20 @@ const AddContactForm = ({ onSubmit }) => {
     },
     mode: 'onChange',
   });
-  const onSubmitForm = data => {
-    onSubmit(data);
+
+  const onSubmitForm = ({ name, number }) => {
+    const notUniqueContact = contacts.find(
+      prevContact => prevContact.name === name,
+    );
+
+    if (notUniqueContact) {
+      toast.error(` ${notUniqueContact.name} is already in contacts`);
+      reset();
+      return;
+    }
+
+    dispatch(phonebookActions.addContact({ name, number }));
+
     reset();
   };
 
